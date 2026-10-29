@@ -54,6 +54,7 @@ fn find_order(line: &str) -> u64 {
     let mut seen = BitArray::<N>::new();
     let mut order = ArrayVec::<U, MAX_ALLOYS>::new();
 
+    // DFS based topological sort algorithm
     fn dfs(
         graph: &[BitArray<N>; MAX_ALLOYS],
         seen: &mut BitArray<N>,
