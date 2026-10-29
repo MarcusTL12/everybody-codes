@@ -1,4 +1,4 @@
-// #![feature(iter_array_chunks)]
+#![feature(portable_simd, iter_array_chunks)]
 
 use std::{env, fmt::Display, fs::read_to_string, time::Instant};
 
