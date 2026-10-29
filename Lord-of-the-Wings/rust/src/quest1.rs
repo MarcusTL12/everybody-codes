@@ -5,22 +5,24 @@ use crate::{
 
 pub const PARTS: Quest = [part1, part2, part3];
 
-fn isqrt_ceil(x: u64) -> u64 {
-    (x as f64).sqrt().ceil() as u64
-}
-
 fn part1(input: String) -> QuestResult {
-    let tmp: u64 = input
+    let ans: u64 = input
         .split(',')
         .map(|x| x.parse().unwrap())
-        .map(|x| isqrt_ceil(x).pow(2) - x)
+        .map(|x: u64| ((x as f64).sqrt().ceil() as u64).pow(2) - x)
         .sum();
 
-    Unsigned(tmp)
+    Unsigned(ans)
 }
 
 fn part2(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let ans: u64 = input
+        .split(',')
+        .map(|x| x.parse().unwrap())
+        .map(|x: u64| if x <= 8 { 8 - x } else { 4 * x.div_ceil(4) - x })
+        .sum();
+
+    Unsigned(ans)
 }
 
 fn part3(input: String) -> QuestResult {
