@@ -26,5 +26,20 @@ fn part2(input: String) -> QuestResult {
 }
 
 fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let ans: u64 = input
+        .split(',')
+        .map(|x| x.parse().unwrap())
+        .map(|x: u64| {
+            if x <= 8 {
+                8 - x
+            } else {
+                let n = ((((x + 1) as f64).sqrt() - 1.0) * 0.5).ceil() as u64;
+                let y = (2 * n + 1).pow(2) - 1;
+
+                y - x
+            }
+        })
+        .sum();
+
+    Unsigned(ans)
 }
