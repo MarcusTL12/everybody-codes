@@ -1,0 +1,116 @@
+#![feature(iter_map_windows, deque_extend_front)]
+
+use std::{env, fmt::Display, fs::read_to_string, time::Instant};
+
+use home::home_dir;
+
+mod quest1;
+mod quest10;
+mod quest11;
+mod quest12;
+mod quest13;
+mod quest14;
+mod quest15;
+mod quest16;
+mod quest17;
+mod quest18;
+mod quest19;
+mod quest2;
+mod quest20;
+mod quest3;
+mod quest4;
+mod quest5;
+mod quest6;
+mod quest7;
+mod quest8;
+mod quest9;
+
+mod util;
+
+#[derive(Debug)]
+enum QuestResult {
+    Text(String),
+    Number(i64),
+}
+
+impl Display for QuestResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Text(s) => s.fmt(f),
+            Self::Number(n) => n.fmt(f),
+        }
+    }
+}
+
+type Quest = [fn(String) -> QuestResult; 3];
+
+const QUESTS: &[Quest] = &[
+    quest1::PARTS,
+    quest2::PARTS,
+    quest3::PARTS,
+    quest4::PARTS,
+    quest5::PARTS,
+    quest6::PARTS,
+    quest7::PARTS,
+    quest8::PARTS,
+    quest9::PARTS,
+    quest10::PARTS,
+    quest11::PARTS,
+    quest12::PARTS,
+    quest13::PARTS,
+    quest14::PARTS,
+    quest15::PARTS,
+    quest16::PARTS,
+    quest17::PARTS,
+    quest18::PARTS,
+    quest19::PARTS,
+    quest20::PARTS,
+];
+
+fn load_input(quest: usize, part: usize, example: usize) -> String {
+    let path = home_dir().unwrap().join("ec-input").join(if example == 0 {
+        format!("everybody_codes_e2025_q{quest:02}_p{part}.txt")
+    } else {
+        format!("everybody_codes_e2025_q{quest:02}_ex{example}.txt")
+    });
+
+    read_to_string(path).unwrap()
+}
+
+fn main() {
+    let mut args = env::args();
+
+    args.next();
+
+    let quest: usize = args
+        .next()
+        .expect("Give quest number as first cli argument")
+        .parse()
+        .expect("Quest number not numeric");
+
+    let part: usize = args
+        .next()
+        .expect("Give quest part as second cli argument")
+        .parse()
+        .expect("Quest part not numeric");
+
+    let example: usize = args.next().map(|s| s.parse().unwrap()).unwrap_or(0);
+
+    let t = Instant::now();
+
+    let input = load_input(quest, part, example);
+
+    let t_load = t.elapsed();
+
+    println!("Loading input took: {t_load:?}");
+
+    let t = Instant::now();
+
+    let result = QUESTS[quest - 1][part - 1](input);
+
+    let t_solve = t.elapsed();
+
+    println!("{result}");
+
+    println!("Solving took: {t_solve:?}");
+}

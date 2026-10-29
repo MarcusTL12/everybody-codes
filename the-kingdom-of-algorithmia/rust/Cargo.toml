@@ -1,0 +1,15 @@
+[package]
+name = "ec"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+home = "0.5"
+ndarray = "0.17"
+num-traits = "0.2"
+num-integer = "0.1"
+arrayvec = "0.7"
+priority-queue = "2"
+rayon = "1"
+z3 = "0.21"
+bitarray = {path = "/home/marcustl/programming/bitarray_rs"}
