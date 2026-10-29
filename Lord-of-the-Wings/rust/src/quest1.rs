@@ -27,9 +27,11 @@ fn part2(input: String) -> QuestResult {
     Unsigned(ans)
 }
 
-fn p3_chunk(xs: Simd<f32, 8>) -> Simd<f32, 8> {
-    const ONE: Simd<f32, 8> = Simd::splat(1.0);
-    const EIGHT: Simd<f32, 8> = Simd::splat(8.0);
+const N: usize = 16;
+
+fn p3_chunk(xs: Simd<f32, N>) -> Simd<f32, N> {
+    const ONE: Simd<f32, N> = Simd::splat(1.0);
+    const EIGHT: Simd<f32, N> = Simd::splat(8.0);
 
     let mask = xs.simd_le(EIGHT);
 
@@ -44,13 +46,15 @@ fn p3_chunk(xs: Simd<f32, 8>) -> Simd<f32, 8> {
 }
 
 fn part3(input: String) -> QuestResult {
-    let mut chunks =
-        input.split(',').map(|x| x.parse().unwrap()).array_chunks();
+    let mut chunks = input
+        .split(',')
+        .map(|x| x.parse::<u32>().unwrap() as f32)
+        .array_chunks();
 
     let acc: Simd<_, _> = chunks.by_ref().map(|xs| p3_chunk(xs.into())).sum();
 
     let mut r = chunks.into_remainder();
-    let r = [0; 8].map(|_| r.next().unwrap_or(8.0));
+    let r = [0; _].map(|_| r.next().unwrap_or(8.0));
 
     let acc = acc + p3_chunk(r.into());
 
