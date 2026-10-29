@@ -1,67 +1,86 @@
-use std::{cmp::Ordering, collections::BTreeMap};
+use arrayvec::ArrayVec;
+use bitarray::BitArray;
 
 use crate::{
     Quest,
     QuestResult::{self, Unsigned},
 };
 
-pub const PARTS: Quest = [part1, part2, part3];
+pub const PARTS: Quest = [part1, part1, part1];
 
 fn find_order(line: &str) -> u64 {
-    let mut n_alloys = 0;
+    const N: usize = 1;
+    const MAX_ALLOYS: usize = N * usize::BITS as usize;
+    type U = u8;
 
-    let ord_lookup: BTreeMap<_, _> = line
-        .as_bytes()
-        .split(|&c| c == b' ')
-        .flat_map(|s| {
-            let mut n1: u8 = 0;
-            let mut n2: u8 = 0;
+    assert!(U::MAX as usize + 1 >= MAX_ALLOYS);
 
-            let mut n = &mut n1;
+    let mut graph = [BitArray::<N>::new(); MAX_ALLOYS];
 
-            let mut ord = Ordering::Equal;
-            let mut other_ord = Ordering::Equal;
+    let mut num_alloys = 0;
 
-            for &c in s {
-                match c {
-                    b'0'..=b'9' => *n = 10 * *n + (c - b'0'),
-                    b'>' => {
-                        n = &mut n2;
-                        ord = Ordering::Greater;
-                        other_ord = Ordering::Less;
-                    }
-                    b'<' => {
-                        n = &mut n2;
-                        ord = Ordering::Less;
-                        other_ord = Ordering::Greater;
-                    }
-                    _ => panic!(),
+    for s in line.as_bytes().split(|&c| c == b' ') {
+        let mut n1: U = 0;
+        let mut n2: U = 0;
+
+        let mut n = &mut n1;
+
+        let mut order = 0;
+
+        for &c in s {
+            match c {
+                b'0'..=b'9' => *n = 10 * *n + (c - b'0'),
+                b'>' | b'<' => {
+                    n = &mut n2;
+                    order = c;
                 }
+                _ => panic!(),
             }
+        }
 
-            n_alloys = n_alloys.max(n1.max(n2));
+        if order == b'>' {
+            std::mem::swap(&mut n1, &mut n2);
+        }
 
-            [((n1, n2), ord), ((n2, n1), other_ord)]
-        })
-        .collect();
+        num_alloys = num_alloys.max(n1.max(n2));
 
-    let mut alloys: Vec<_> = (1..=n_alloys).collect();
+        // Makes alloys better suited for 0 indexing
+        n1 -= 1;
+        n2 -= 1;
 
-    alloys.sort_by(|&a, &b| ord_lookup[&(a, b)]);
+        graph[n1 as usize].set(n2 as usize, true);
+    }
 
-    alloys.into_iter().rev().fold(0, |n, d| 10 * n + d as u64)
+    let mut seen = BitArray::<N>::new();
+    let mut order = ArrayVec::<U, MAX_ALLOYS>::new();
+
+    fn dfs(
+        graph: &[BitArray<N>; MAX_ALLOYS],
+        seen: &mut BitArray<N>,
+        order: &mut ArrayVec<U, MAX_ALLOYS>,
+        alloy: U,
+    ) {
+        if seen[alloy as usize] {
+            return;
+        }
+
+        for other_alloy in graph[alloy as usize].trues_iter() {
+            dfs(graph, seen, order, other_alloy as U);
+        }
+
+        seen.set(alloy as usize, true);
+        order.push(alloy);
+    }
+
+    for alloy in 0..num_alloys {
+        dfs(&graph, &mut seen, &mut order, alloy);
+    }
+
+    order.into_iter().fold(0, |n, d| 10 * n + (d as u64) + 1)
 }
 
 fn part1(input: String) -> QuestResult {
     let ans = input.lines().map(find_order).sum();
 
     Unsigned(ans)
-}
-
-fn part2(input: String) -> QuestResult {
-    todo!("\n{input}")
-}
-
-fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
 }
