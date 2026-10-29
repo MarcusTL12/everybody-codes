@@ -5,6 +5,7 @@ use std::{env, fmt::Display, fs::read_to_string, time::Instant};
 use home::home_dir;
 
 mod quest1;
+mod quest2;
 
 #[derive(Debug)]
 pub enum QuestResult {
@@ -27,6 +28,7 @@ type Quest = [fn(String) -> QuestResult; 3];
 
 const QUESTS: &[Quest] = &[
     quest1::PARTS,
+    quest2::PARTS,
 ];
 
 fn load_input(quest: usize, part: usize, example: usize) -> String {
