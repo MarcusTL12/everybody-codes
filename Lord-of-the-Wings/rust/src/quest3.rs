@@ -1,3 +1,5 @@
+use rayon::{iter::ParallelIterator, slice::ParallelSlice};
+
 use crate::{
     Quest,
     QuestResult::{self, Unsigned},
@@ -100,7 +102,7 @@ fn veryfy_iso2(l: &[u8]) -> Option<u64> {
 fn part3(input: String) -> QuestResult {
     let ans: u64 = input
         .as_bytes()
-        .split(|&c| c == b'\n')
+        .par_split(|&c| c == b'\n')
         .filter_map(veryfy_iso2)
         .sum();
 
