@@ -78,7 +78,7 @@ fn veryfy_iso2(l: &[u8]) -> Option<u64> {
         .find_map(|(i, &c)| (c == b' ').then_some(i))
         .unwrap();
 
-    let iso_code = &l[4..i_space];
+    let iso_code = &l[5..i_space];
     let number = l[i_space + 1..]
         .iter()
         .fold(0, |n, d| 10 * n + (d - b'0') as u64);
@@ -86,13 +86,23 @@ fn veryfy_iso2(l: &[u8]) -> Option<u64> {
     let iso_iter = iso_code.iter().map(|&c| c - b'0').rev().cycle();
     let digits_iter = make_digit_iterator(number);
 
-    let ans = iso2_kernel(iso_iter, digits_iter);
+    let ans = iso2_kernel(iso_iter.clone(), digits_iter);
 
-    if (1..number).any(||)
+    if (1..number)
+        .any(|n| iso2_kernel(iso_iter.clone(), make_digit_iterator(n)) == ans)
+    {
+        return None;
+    }
 
-    None
+    Some(ans)
 }
 
 fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let ans: u64 = input
+        .as_bytes()
+        .split(|&c| c == b'\n')
+        .filter_map(veryfy_iso2)
+        .sum();
+
+    Unsigned(ans)
 }
