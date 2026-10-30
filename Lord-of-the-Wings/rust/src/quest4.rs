@@ -116,7 +116,7 @@ fn assign_points<T, O: Ord, S: FnMut(&T) -> O, F: Fn(&T) -> bool>(
 
     let mut last_award = 0;
 
-    for (i, award) in (1..=max_points).rev().enumerate().take(data.len()) {
+    for (i, award) in (0..=max_points).rev().enumerate().take(data.len()) {
         if failed(&data[i].1) {
             break;
         }
@@ -161,16 +161,10 @@ fn part3(input: String) -> QuestResult {
         }
     }
 
-    // println!("{record:?}");
-
     let mut points = vec![0; num_ids as usize];
 
     for mut quest in record {
-        // println!("\n\nNew quest!");
-
         for (p, award) in (0..3).zip([50, 100, 150]) {
-            // println!("\nPart: {}", p + 1);
-
             assign_points(
                 &mut points,
                 &mut quest,
@@ -178,21 +172,22 @@ fn part3(input: String) -> QuestResult {
                 |x| x.get(p).is_none(),
                 award,
             );
-
-            // println!("{quest:?}");
-            // println!("{points:?}");
         }
     }
 
-    // println!("{points:?}");
-
     points.sort_by_key(|&x| Reverse(x));
 
-    let ans: u32 = points
-        .into_iter()
-        .enumerate()
-        .map(|(i, score)| (i as u32 + 1) * score)
-        .sum();
+    let (_, _, ans) = points.into_iter().enumerate().fold(
+        (u32::MAX, 0, 0),
+        |(last_score, last_place, checksum), (i, score)| {
+            if score == last_score {
+                (last_score, last_place, checksum + last_place * score)
+            } else {
+                let place = i as u32 + 1;
+                (score, place, checksum + place * score)
+            }
+        },
+    );
 
     Unsigned(ans.into())
 }
