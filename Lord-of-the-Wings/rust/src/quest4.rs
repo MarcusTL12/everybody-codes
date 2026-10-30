@@ -1,4 +1,6 @@
-use std::cmp::Reverse;
+use std::cmp::{Ordering, Reverse};
+
+use arrayvec::ArrayVec;
 
 use crate::{
     Quest,
@@ -83,6 +85,114 @@ fn part2(input: String) -> QuestResult {
     Unsigned(ans.into())
 }
 
+fn parseinputfull(input: &str) -> impl Iterator<Item = [u32; 4]> {
+    input.as_bytes().split(|&c| c == b'\n').map(|l| {
+        let mut vals = [0; 4];
+
+        for (s, d) in l
+            .split(|&c| c == b' ')
+            .map(|b| {
+                parsebytes(
+                    b.split_once(|&c| c == b'=').unwrap().1.iter().cloned(),
+                )
+            })
+            .zip(&mut vals)
+        {
+            *d = s;
+        }
+
+        vals
+    })
+}
+
+fn assign_points<T, O: Ord, S: FnMut(&T) -> O, F: Fn(&T) -> bool>(
+    points: &mut [u32],
+    data: &mut [(u32, T)],
+    mut score: S,
+    failed: F,
+    max_points: u32,
+) {
+    data.sort_by_key(|(_, x)| score(x));
+
+    let mut last_award = 0;
+
+    for (i, award) in (1..=max_points).rev().enumerate().take(data.len()) {
+        if failed(&data[i].1) {
+            break;
+        }
+
+        if let Some(Ordering::Equal) = i.checked_sub(1).and_then(|j| {
+            data.get(j).map(|(_, x)| score(x).cmp(&score(&data[i].1)))
+        }) {
+            points[data[i].0 as usize] += last_award;
+        } else {
+            points[data[i].0 as usize] += award;
+            last_award = award;
+        }
+    }
+}
+
 fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let mut record = Vec::new();
+
+    let mut num_ids = 0;
+
+    for [id, q, p, t] in parseinputfull(&input) {
+        num_ids = num_ids.max(id);
+
+        if record.len() < q as usize {
+            record.resize(q as usize, Vec::new());
+        }
+
+        let q = &mut record[q as usize - 1];
+
+        for new_id in q.len() as u32..id {
+            q.push((new_id, ArrayVec::<_, 3>::new()));
+        }
+
+        let id = &mut q[id as usize - 1].1;
+
+        while id.len() < p as usize {
+            id.push(id.last().cloned().unwrap_or(0));
+        }
+
+        for i in p as usize - 1..id.len() {
+            id[i] += t;
+        }
+    }
+
+    // println!("{record:?}");
+
+    let mut points = vec![0; num_ids as usize];
+
+    for mut quest in record {
+        // println!("\n\nNew quest!");
+
+        for (p, award) in (0..3).zip([50, 100, 150]) {
+            // println!("\nPart: {}", p + 1);
+
+            assign_points(
+                &mut points,
+                &mut quest,
+                |x| x.get(p).cloned().unwrap_or(u32::MAX),
+                |x| x.get(p).is_none(),
+                award,
+            );
+
+            // println!("{quest:?}");
+            // println!("{points:?}");
+        }
+    }
+
+    // println!("{points:?}");
+
+    points.sort_by_key(|&x| Reverse(x));
+
+    let ans: u32 = points
+        .into_iter()
+        .enumerate()
+        .map(|(i, score)| (i as u32 + 1) * score)
+        .sum();
+
+    Unsigned(ans.into())
 }
