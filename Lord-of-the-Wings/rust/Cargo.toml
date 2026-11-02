@@ -8,3 +8,4 @@ bitarray = {git = "https://github.com/MarcusTL12/bitarray_rs"}
 home = "0.5"
 arrayvec = "0.7"
 rayon = "1"
+ndarray = "0.17"
