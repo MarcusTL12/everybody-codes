@@ -65,13 +65,7 @@ fn fill_neighbours<P: Fn(u8) -> bool, Q: Fn(u8) -> bool>(
     }
 }
 
-fn part1(input: String) -> QuestResult {
-    let mut input = input.into_bytes();
-    input.reserve_exact(1);
-    input.push(b'\n');
-
-    let grid = input_to_grid_mut(&mut input);
-
+fn fill_land(grid: ArrayViewMut2<u8>) {
     let (h, w) = grid.dim();
 
     let mut queue = BTreeSet::new();
@@ -79,33 +73,25 @@ fn part1(input: String) -> QuestResult {
     update_queue(grid.view(), &mut queue, [h / 2, w / 2], |c| c != b'#');
 
     fill_neighbours(grid, &mut queue, |c| c != b'0', |c| c != b'#', 5, b'#');
+}
+
+fn part1(input: String) -> QuestResult {
+    let mut input = input.into_bytes();
+    input.reserve_exact(1);
+    input.push(b'\n');
+
+    let grid = input_to_grid_mut(&mut input);
+
+    fill_land(grid);
 
     let ans = input.into_iter().filter(|&c| c == b'#').count();
 
     Unsigned(ans as u64)
 }
 
-fn part2(input: String) -> QuestResult {
-    let mut input = input.into_bytes();
-    input.reserve_exact(1);
-    input.push(b'\n');
-
-    let mut grid = input_to_grid_mut(&mut input);
+fn fill_sand(mut grid: ArrayViewMut2<u8>) {
     let (h, w) = grid.dim();
-
     let mut queue = BTreeSet::new();
-
-    update_queue(grid.view(), &mut queue, [h / 2, w / 2], |c| c != b'#');
-
-    fill_neighbours(
-        grid.view_mut(),
-        &mut queue,
-        |c| c != b'0',
-        |c| c != b'#',
-        5,
-        b'#',
-    );
-
     for y in 0..h {
         for x in 0..w {
             if grid[[y, x]] == b'#'
@@ -116,7 +102,6 @@ fn part2(input: String) -> QuestResult {
             {
                 grid[[y, x]] = b'=';
                 queue.insert([y, x]);
-                // update_queue(grid.view(), &mut queue, [y, x], |c| c == b'#');
             }
         }
     }
@@ -130,12 +115,93 @@ fn part2(input: String) -> QuestResult {
     let mut queue = new_queue;
 
     fill_neighbours(grid, &mut queue, |c| c == b'=', |c| c == b'#', 5, b'=');
+}
+
+fn part2(input: String) -> QuestResult {
+    let mut input = input.into_bytes();
+    input.reserve_exact(1);
+    input.push(b'\n');
+
+    let mut grid = input_to_grid_mut(&mut input);
+    fill_land(grid.view_mut());
+    fill_sand(grid);
 
     let ans = input.into_iter().filter(|&c| c == b'=').count();
 
     Unsigned(ans as u64)
 }
 
+fn rotate_dir([dy, dx]: [isize; 2], i: u8) -> [isize; 2] {
+    match i {
+        0 => [dy, dx],
+        1 => [-dx, dy],
+        2 => [-dy, -dx],
+        3 => [dx, -dy],
+        _ => panic!(),
+    }
+}
+
+fn tree_offsets() -> impl Iterator<Item = [isize; 2]> {
+    const BASE: [[isize; 2]; 5] = [[1, 0], [2, 0], [1, 1], [2, 1], [1, 2]];
+    (0..4).flat_map(|i| BASE.into_iter().map(move |dp| rotate_dir(dp, i)))
+}
+
 fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let mut input = input.into_bytes();
+    input.reserve_exact(1);
+    input.push(b'\n');
+
+    let mut grid = input_to_grid_mut(&mut input);
+    fill_land(grid.view_mut());
+    fill_sand(grid.view_mut());
+
+    let (h, w) = grid.dim();
+
+    for y in 2..h - 2 {
+        for x in 2..w - 2 {
+            if grid[[y, x]] == b'#'
+                && tree_offsets().all(|[dy, dx]| {
+                    matches!(
+                        grid[[
+                            y.wrapping_add_signed(dy),
+                            x.wrapping_add_signed(dx)
+                        ]],
+                        b'#' | b'@'
+                    )
+                })
+            {
+                grid[[y, x]] = b'@';
+            }
+        }
+    }
+
+    for _ in 0..2 {
+        let mut queue = BTreeSet::new();
+        for y in 1..h - 1 {
+            'lbl1: for x in 1..w - 1 {
+                if grid[[y, x]] == b'#' {
+                    let mut num_trees = 0;
+                    for p in neighbours([y, x], (h, w)) {
+                        match grid[p] {
+                            b'=' => continue 'lbl1,
+                            b'@' => num_trees += 1,
+                            _ => {}
+                        }
+                    }
+
+                    if num_trees >= 4 {
+                        queue.insert([y, x]);
+                    }
+                }
+            }
+        }
+
+        for p in queue {
+            grid[p] = b'@';
+        }
+    }
+
+    let ans = input.into_iter().filter(|&c| c == b'@').count();
+
+    Unsigned(ans as u64)
 }
