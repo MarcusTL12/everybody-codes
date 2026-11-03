@@ -78,6 +78,48 @@ fn part2(input: String) -> QuestResult {
     Unsigned((memo.len() - 1) as u64)
 }
 
+fn dfs2<'a, I: Iterator<Item = &'a [u8]>, F: Copy + Fn(&'a [u8]) -> I>(
+    ingredients: F,
+    memo: &mut BTreeMap<&'a [u8], u8>,
+    k: &'a [u8],
+    i: usize,
+) {
+    if let Some(x) = memo.get(k)
+        && x & 1 << i != 0
+    {
+        return;
+    }
+
+    *memo.entry(k).or_insert(0) |= 1 << i;
+
+    for id in ingredients(k) {
+        dfs2(ingredients, memo, id, i);
+    }
+}
+
 fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    let mut map = BTreeMap::new();
+
+    for l in input.as_bytes().split(|&c| c == b'\n') {
+        let (k, vs) = l.split_once(|&c| c == b':').unwrap();
+
+        for v in vs.split(|&c| c == b',') {
+            map.entry(v).or_insert(Vec::new()).push(k);
+        }
+    }
+
+    let mut memo = BTreeMap::new();
+
+    for (i, null) in [b"NULLv1", b"NULLv2", b"NULLv3"].into_iter().enumerate() {
+        dfs2(
+            |k| map.get(&k).into_iter().flat_map(|v| v.iter().cloned()),
+            &mut memo,
+            null,
+            i,
+        );
+    }
+
+    let ans = memo.values().filter(|x| x.count_ones() >= 2).count();
+
+    Unsigned(ans as u64)
 }
