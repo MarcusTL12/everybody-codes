@@ -29,3 +29,7 @@ pub fn input_to_grid_mut(input: &mut [u8]) -> ArrayViewMut2<'_, u8> {
         .unwrap()
         .slice_move(s![.., 0..w])
 }
+
+pub fn parse_bytes_u64<'a, I: IntoIterator<Item = &'a u8>>(bytes: I) -> u64 {
+    bytes.into_iter().fold(0, |n, d| 10 * n + (d - b'0') as u64)
+}
