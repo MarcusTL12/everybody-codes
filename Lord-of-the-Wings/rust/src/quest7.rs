@@ -75,7 +75,7 @@ fn part1(input: String) -> QuestResult {
 }
 
 fn part2(input: String) -> QuestResult {
-    let mut network = parse_input::<2>(input);
+    let network = parse_input::<2>(input);
 
     let (startid, _) = network
         .iter()
@@ -83,9 +83,7 @@ fn part2(input: String) -> QuestResult {
         .max_by_key(|(_, (_, c))| c.count_ones())
         .unwrap();
 
-    propagate_energy(&mut network, startid, 10);
-
-    let ans = network.into_iter().map(|(energy, _)| energy).sum();
+    let ans = propagate_energy2(&network, startid, 10, u64::MAX);
 
     Unsigned(ans)
 }
