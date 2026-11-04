@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, mem::swap};
 
 use bitarray::BitArray;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
     Quest,
@@ -144,6 +145,7 @@ fn part3(input: String) -> QuestResult {
     let network = parse_input::<2>(input);
 
     let ans = (0..network.len())
+        .into_par_iter()
         .map(|i| propagate_energy2(&network, i, 10, LIMIT))
         .max()
         .unwrap();
