@@ -52,6 +52,7 @@ dependencies = [
  "bitarray",
  "home",
  "ndarray",
+ "psst",
  "rayon",
 ]
 
@@ -136,6 +137,10 @@ checksum = "10ab3eb7f3becc3a1cbc4f2c6f20267996cfc1a6467a873763411b136a122715"
 dependencies = [
  "portable-atomic",
 ]
+
+[[package]]
+name = "psst"
+version = "0.1.0"
 
 [[package]]
 name = "rawpointer"

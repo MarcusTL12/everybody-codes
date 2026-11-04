@@ -1,4 +1,6 @@
-use std::collections::{BTreeMap, BTreeSet};
+// use std::collections::{BTreeMap, BTreeSet};
+
+use psst::{PsstMap, set::PsstSet};
 
 use crate::{
     Quest,
@@ -7,6 +9,9 @@ use crate::{
 
 pub const PARTS: Quest = [part1, part2, part3];
 
+type Map<K, V> = PsstMap<K, V>;
+type Set<T> = PsstSet<T>;
+
 fn read_id(data: &[u8], i: usize) -> [u8; 4] {
     let j = i * 5;
     unsafe { [0, 1, 2, 3].map(|k| *data.get_unchecked(j + k)) }
@@ -14,7 +19,7 @@ fn read_id(data: &[u8], i: usize) -> [u8; 4] {
 
 fn dfs<I: Iterator<Item = [u8; 4]>, F: Copy + Fn([u8; 4]) -> I>(
     ingredients: F,
-    memo: &mut BTreeSet<[u8; 4]>,
+    memo: &mut Set<[u8; 4]>,
     k: [u8; 4],
 ) {
     if memo.contains(&k) {
@@ -29,7 +34,7 @@ fn dfs<I: Iterator<Item = [u8; 4]>, F: Copy + Fn([u8; 4]) -> I>(
 }
 
 fn part1(input: String) -> QuestResult {
-    let map: BTreeMap<_, _> = input
+    let map: Map<_, _> = input
         .as_bytes()
         .split(|&c| c == b'\n')
         .map(|l| {
@@ -39,7 +44,7 @@ fn part1(input: String) -> QuestResult {
         })
         .collect();
 
-    let mut memo = BTreeSet::new();
+    let mut memo = Set::new();
 
     dfs(
         |k| {
@@ -55,7 +60,7 @@ fn part1(input: String) -> QuestResult {
 }
 
 fn part2(input: String) -> QuestResult {
-    let mut map = BTreeMap::new();
+    let mut map = Map::new();
 
     for l in input.as_bytes().split(|&c| c == b'\n') {
         let k = read_id(l, 0);
@@ -67,7 +72,7 @@ fn part2(input: String) -> QuestResult {
         }
     }
 
-    let mut memo = BTreeSet::new();
+    let mut memo = Set::new();
 
     dfs(
         |k| map.get(&k).into_iter().flat_map(|v| v.iter().cloned()),
@@ -80,11 +85,11 @@ fn part2(input: String) -> QuestResult {
 
 fn dfs2<'a, I: Iterator<Item = &'a [u8]>, F: Copy + Fn(&'a [u8]) -> I>(
     ingredients: F,
-    memo: &mut BTreeMap<&'a [u8], u8>,
+    memo: &mut Map<&'a [u8], u8>,
     k: &'a [u8],
     i: usize,
 ) {
-    if let Some(x) = memo.get(k)
+    if let Some(x) = memo.get(&k)
         && x & 1 << i != 0
     {
         return;
@@ -98,7 +103,7 @@ fn dfs2<'a, I: Iterator<Item = &'a [u8]>, F: Copy + Fn(&'a [u8]) -> I>(
 }
 
 fn part3(input: String) -> QuestResult {
-    let mut map = BTreeMap::new();
+    let mut map = Map::new();
 
     for l in input.as_bytes().split(|&c| c == b'\n') {
         let (k, vs) = l.split_once(|&c| c == b':').unwrap();
@@ -108,7 +113,7 @@ fn part3(input: String) -> QuestResult {
         }
     }
 
-    let mut memo = BTreeMap::new();
+    let mut memo = Map::new();
 
     for (i, null) in [b"NULLv1", b"NULLv2", b"NULLv3"].into_iter().enumerate() {
         dfs2(

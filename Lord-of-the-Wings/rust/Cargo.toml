@@ -9,3 +9,4 @@ home = "0.5"
 arrayvec = "0.7"
 rayon = "1"
 ndarray = "0.17"
+psst = {path = "/home/marcustl/programming/psst-rs"}
