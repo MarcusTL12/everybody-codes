@@ -44,8 +44,8 @@ fn grow(split_thrs: u32, limit: u32) -> u32 {
     }
 }
 
-fn part1(input: String) -> QuestResult {
-    let ans: u32 = input
+fn grow_input<F: Fn(u32, u32) -> u32>(input: String, grow: F) -> u32 {
+    input
         .lines()
         .map(|l| {
             let mut parts = l
@@ -58,13 +58,46 @@ fn part1(input: String) -> QuestResult {
 
             grow(split_thrs, limit)
         })
-        .sum();
+        .sum()
+}
 
-    Unsigned(ans.into())
+fn part1(input: String) -> QuestResult {
+    Unsigned(grow_input(input, grow).into())
+}
+
+fn grow2(split_thrs: u32, limit: u32) -> u32 {
+    let mut queue1 = BTreeMap::new();
+    let mut queue2 = BTreeMap::new();
+
+    queue1.insert(0, 1);
+
+    let mut i = 0;
+    let mut leaves = 1;
+
+    loop {
+        i += 1;
+
+        while let Some((l, n)) = queue1.pop_first() {
+            if l + 1 < split_thrs {
+                *queue2.entry(l + 1).or_insert(0) += n;
+            } else {
+                let lhalf = l / 2;
+                *queue2.entry(lhalf).or_insert(0) += 2 * n;
+                *queue2.entry(1).or_insert(0) += n;
+                leaves += n;
+            }
+        }
+
+        if leaves >= limit {
+            break i;
+        }
+
+        swap(&mut queue1, &mut queue2);
+    }
 }
 
 fn part2(input: String) -> QuestResult {
-    todo!("\n{input}")
+    Unsigned(grow_input(input, grow2).into())
 }
 
 fn part3(input: String) -> QuestResult {
