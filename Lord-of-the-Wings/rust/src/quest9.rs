@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, mem::swap};
 
+use psst::PsstMap;
 use rayon::{iter::ParallelIterator, str::ParallelString};
 
 use crate::{
@@ -68,8 +69,8 @@ fn part1(input: String) -> QuestResult {
 }
 
 fn grow2(split_thrs: u64, limit: u64) -> u64 {
-    let mut queue1 = BTreeMap::new();
-    let mut queue2 = BTreeMap::new();
+    let mut queue1 = PsstMap::new();
+    let mut queue2 = PsstMap::new();
 
     queue1.insert(0, 1);
 
@@ -86,7 +87,7 @@ fn grow2(split_thrs: u64, limit: u64) -> u64 {
 
         i += timestep;
 
-        while let Some((l, n)) = queue1.pop_first() {
+        while let Some((l, n)) = queue1.pop() {
             if l + timestep < split_thrs {
                 *queue2.entry(l + timestep).or_insert(0) += n;
             } else {
