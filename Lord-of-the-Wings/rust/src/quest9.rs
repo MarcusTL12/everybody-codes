@@ -1,5 +1,7 @@
 use std::{collections::BTreeMap, mem::swap};
 
+use rayon::{iter::ParallelIterator, str::ParallelString};
+
 use crate::{
     Quest,
     QuestResult::{self, Unsigned},
@@ -44,9 +46,9 @@ fn grow(split_thrs: u64, limit: u64) -> u64 {
     }
 }
 
-fn grow_input<F: Fn(u64, u64) -> u64>(input: String, grow: F) -> u64 {
+fn grow_input<F: Fn(u64, u64) -> u64 + Sync>(input: String, grow: F) -> u64 {
     input
-        .lines()
+        .par_lines()
         .map(|l| {
             let mut parts = l
                 .split(", ")
