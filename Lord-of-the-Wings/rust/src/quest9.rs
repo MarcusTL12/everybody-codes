@@ -5,9 +5,9 @@ use crate::{
     QuestResult::{self, Unsigned},
 };
 
-pub const PARTS: Quest = [part1, part2, part3];
+pub const PARTS: Quest = [part1, part2, part2];
 
-fn grow(split_thrs: u32, limit: u32) -> u32 {
+fn grow(split_thrs: u64, limit: u64) -> u64 {
     let mut queue1 = BTreeMap::new();
     let mut queue2 = BTreeMap::new();
 
@@ -44,7 +44,7 @@ fn grow(split_thrs: u32, limit: u32) -> u32 {
     }
 }
 
-fn grow_input<F: Fn(u32, u32) -> u32>(input: String, grow: F) -> u32 {
+fn grow_input<F: Fn(u64, u64) -> u64>(input: String, grow: F) -> u64 {
     input
         .lines()
         .map(|l| {
@@ -62,10 +62,10 @@ fn grow_input<F: Fn(u32, u32) -> u32>(input: String, grow: F) -> u32 {
 }
 
 fn part1(input: String) -> QuestResult {
-    Unsigned(grow_input(input, grow).into())
+    Unsigned(grow_input(input, grow))
 }
 
-fn grow2(split_thrs: u32, limit: u32) -> u32 {
+fn grow2(split_thrs: u64, limit: u64) -> u64 {
     let mut queue1 = BTreeMap::new();
     let mut queue2 = BTreeMap::new();
 
@@ -74,14 +74,21 @@ fn grow2(split_thrs: u32, limit: u32) -> u32 {
     let mut i = 0;
     let mut leaves = 1;
 
+    if limit == 1 {
+        return 1;
+    }
+
     loop {
-        i += 1;
+        let max_len = queue1.keys().max().unwrap();
+        let timestep = split_thrs - max_len;
+
+        i += timestep;
 
         while let Some((l, n)) = queue1.pop_first() {
-            if l + 1 < split_thrs {
-                *queue2.entry(l + 1).or_insert(0) += n;
+            if l + timestep < split_thrs {
+                *queue2.entry(l + timestep).or_insert(0) += n;
             } else {
-                let lhalf = l / 2;
+                let lhalf = (l + timestep) / 2;
                 *queue2.entry(lhalf).or_insert(0) += 2 * n;
                 *queue2.entry(1).or_insert(0) += n;
                 leaves += n;
@@ -97,9 +104,5 @@ fn grow2(split_thrs: u32, limit: u32) -> u32 {
 }
 
 fn part2(input: String) -> QuestResult {
-    Unsigned(grow_input(input, grow2).into())
-}
-
-fn part3(input: String) -> QuestResult {
-    todo!("\n{input}")
+    Unsigned(grow_input(input, grow2))
 }
